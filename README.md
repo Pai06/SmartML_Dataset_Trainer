@@ -29,6 +29,11 @@ This project provides a Streamlit-based web application for training, evaluating
    git clone https://github.com/Pai06/SmartML_Dataset_Trainer.git
    cd trainer_website
 2. Install dependencies
+   ```bash
+   pip install streamlit
+   pip install scikit-learn
+   pip install tensorflow
+   pip install xgboost
 3. Run the application
    ```bash
    streamlit run main.py
