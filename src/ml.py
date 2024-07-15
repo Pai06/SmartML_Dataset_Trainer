@@ -17,6 +17,7 @@ from tensorflow.keras.optimizers import Adam, SGD
 from tensorflow.keras.callbacks import EarlyStopping 
 import joblib
 from tensorflow.keras.models import load_model as keras_load_model
+import plotly.graph_objects as go
 
 # Directories
 working_directory = os.path.dirname(os.path.abspath(__file__))
@@ -108,7 +109,8 @@ def train(X_train, y_train, model, model_name, regression=False):
 def train_rnn_lstm(
     X_train, y_train, model_type, num_layers, units_per_layer, activation,
     optimizer, learning_rate, dropout_rate, recurrent_dropout_rate,
-    epochs, batch_size, validation_split, early_stopping, bidirectional, model_name
+    epochs, batch_size, validation_split, early_stopping, bidirectional, model_name,
+    st_placeholder=None
 ):
     model = Sequential()
 
@@ -145,7 +147,23 @@ def train_rnn_lstm(
     if early_stopping:
         callbacks.append(EarlyStopping(monitor='val_loss', patience=10))
 
-    history = model.fit(X_train, y_train, epochs=epochs, batch_size=batch_size, validation_split=validation_split, callbacks=callbacks)
+    # Create a list to store losses
+    losses = []
+
+    fig = go.Figure()
+    fig.add_trace(go.Scatter(x=[], y=[], mode='lines', name='Training Loss'))
+    st_plot = st_placeholder.plotly_chart(fig, use_container_width=True)
+
+    for epoch in range(epochs):
+        history = model.fit(X_train, y_train, epochs=1, batch_size=batch_size, validation_split=validation_split, callbacks=callbacks, verbose=0)
+        losses.append(history.history['loss'][0])
+
+        if st_placeholder:
+            # Update dynamic graph
+            fig.data[0].x = list(range(1, len(losses) + 1))
+            fig.data[0].y = losses
+            fig.layout.title = f'{model_type} Training Loss (Epoch {epoch + 1})'
+            st_plot.plotly_chart(fig, use_container_width=True)
 
     # Save the model
     model_path = os.path.join(trained_models_directory, f"{model_name}.h5")

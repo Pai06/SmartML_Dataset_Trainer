@@ -17,7 +17,7 @@ from ml import preprocess, preprocess_sequences, train, train_rnn_lstm, evaluate
 
 # Initialize Streamlit
 st.set_page_config(
-    page_title="Dataset Trainer and Predictor",
+    page_title="SmartML",
     page_icon="📈",
     layout="centered"
 )
@@ -27,6 +27,9 @@ working_directory = os.path.dirname(os.path.abspath(__file__))
 parent_directory = os.path.dirname(working_directory)
 data_directory = f"{parent_directory}/data"
 trained_models_directory = f"{parent_directory}/trained"
+
+# Default select_model value
+select_model = ""
 
 # Title
 st.title("💻 Dataset Trainer and Predictor")
@@ -124,77 +127,79 @@ if df is not None:
             C = st.sidebar.slider("Regularization Strength (C)", 0.01, 10.0, 1.0)
             epsilon = st.sidebar.slider("Epsilon", 0.01, 1.0, 0.1)
 
-# Train model button
-if st.button("Train Model"):
-    if select_model in ["RNN", "LSTM", "GRU"]:
-        X_train, X_test, y_train, y_test = preprocess_sequences(df, target_column, scaler)
-        history = train_rnn_lstm(
-            X_train, y_train, select_model, num_layers, units_per_layer, activation,
-            optimizer, learning_rate, dropout_rate, recurrent_dropout_rate,
-            epochs, batch_size, validation_split, early_stopping, bidirectional, model_name
-        )
-        performance_metrics = evaluate_regression(history.model, X_test, y_test)
+# Placeholder for dynamic training loss plot
+if df is not None:
+    st.header(f"{select_model} Training History")
+    training_loss_placeholder = st.empty()
 
-        # Save trained model and target_column to session state
-        st.session_state['trained_model'] = history.model
-        st.session_state['target_column'] = target_column
+    # Display Train Model button only when df is not None
+    if st.button("Train Model"):
+        if select_model in ["RNN", "LSTM", "GRU"]:
+            X_train, X_test, y_train, y_test = preprocess_sequences(df, target_column, scaler)
+            history = train_rnn_lstm(
+                X_train, y_train, select_model, num_layers, units_per_layer, activation,
+                optimizer, learning_rate, dropout_rate, recurrent_dropout_rate,
+                epochs, batch_size, validation_split, early_stopping, bidirectional, model_name,
+                st_placeholder=training_loss_placeholder  # Pass the placeholder for dynamic updates
+            )
+            performance_metrics = evaluate_regression(history.model, X_test, y_test)
 
-        # Plot training history
-        st.header(f"{select_model} Training History")
-        fig_loss = px.line(y=history.history['loss'], labels={'x': 'Epoch', 'y': 'Loss'}, title='Training Loss Over Epochs')
-        st.plotly_chart(fig_loss, use_container_width=True, config={'displayModeBar': False})
+            # Save trained model and target_column to session state
+            st.session_state['trained_model'] = history.model
+            st.session_state['target_column'] = target_column
 
-    else:
-        X_train, X_test, y_train, y_test = preprocess(df, target_column, scaler)
-        
-        # Adjust model based on selected hyperparameters
-        if select_model == "Logistic Regression":
-            model = LogisticRegression(penalty=penalty, C=C, solver=solver)
-        elif select_model == "Support Vector Classifier":
-            model = SVC(C=C)
-        elif select_model == "Random Forest Classifier":
-            model = RandomForestClassifier(n_estimators=n_estimators, max_depth=max_depth, min_samples_split=min_samples_split, min_samples_leaf=min_samples_leaf)
-        elif select_model == "XGBoost Classifier":
-            model = XGBClassifier(n_estimators=n_estimators, learning_rate=learning_rate, max_depth=max_depth, min_child_weight=min_child_weight)
-        elif select_model == "Linear Regression":
-            model = LinearRegression()
-        elif select_model == "Random Forest Regressor":
-            model = RandomForestRegressor(n_estimators=n_estimators, max_depth=max_depth, min_samples_split=min_samples_split, min_samples_leaf=min_samples_leaf)
-        elif select_model == "XGBoost Regressor":
-            model = XGBRegressor(n_estimators=n_estimators, learning_rate=learning_rate, max_depth=max_depth, min_child_weight=min_child_weight)
-        elif select_model == "SVR":
-            model = SVR(C=C, epsilon=epsilon)
-
-        if select_model in ["Linear Regression", "Random Forest Regressor", "XGBoost Regressor"]:
-            model = train(X_train, y_train, model, model_name, regression=True)
-            performance_metrics = evaluate_regression(model, X_test, y_test)
+            # st.header(f"{select_model} Training History")
         else:
-            model = train(X_train, y_train, model, model_name, regression=False)
-            performance_metrics = evaluate_classification(model, X_test, y_test)
+            X_train, X_test, y_train, y_test = preprocess(df, target_column, scaler)
+            
+            # Adjust model based on selected hyperparameters
+            if select_model == "Logistic Regression":
+                model = LogisticRegression(penalty=penalty, C=C, solver=solver)
+            elif select_model == "Support Vector Classifier":
+                model = SVC(C=C)
+            elif select_model == "Random Forest Classifier":
+                model = RandomForestClassifier(n_estimators=n_estimators, max_depth=max_depth, min_samples_split=min_samples_split, min_samples_leaf=min_samples_leaf)
+            elif select_model == "XGBoost Classifier":
+                model = XGBClassifier(n_estimators=n_estimators, learning_rate=learning_rate, max_depth=max_depth, min_child_weight=min_child_weight)
+            elif select_model == "Linear Regression":
+                model = LinearRegression()
+            elif select_model == "Random Forest Regressor":
+                model = RandomForestRegressor(n_estimators=n_estimators, max_depth=max_depth, min_samples_split=min_samples_split, min_samples_leaf=min_samples_leaf)
+            elif select_model == "XGBoost Regressor":
+                model = XGBRegressor(n_estimators=n_estimators, learning_rate=learning_rate, max_depth=max_depth, min_child_weight=min_child_weight)
+            elif select_model == "SVR":
+                model = SVR(C=C, epsilon=epsilon)
 
-        # Save trained model and target_column to session state
-        st.session_state['trained_model'] = model
-        st.session_state['target_column'] = target_column
+            if select_model in ["Linear Regression", "Random Forest Regressor", "XGBoost Regressor"]:
+                model = train(X_train, y_train, model, model_name, regression=True)
+                performance_metrics = evaluate_regression(model, X_test, y_test)
+            else:
+                model = train(X_train, y_train, model, model_name, regression=False)
+                performance_metrics = evaluate_classification(model, X_test, y_test)
 
-        # Display performance metrics
-        st.header("Test Performance Metrics")
-        st.json(performance_metrics)
+            # Save trained model and target_column to session state
+            st.session_state['trained_model'] = model
+            st.session_state['target_column'] = target_column
 
-    if select_model in ["Linear Regression", "Random Forest Regressor", "XGBoost Regressor", "RNN", "LSTM", "GRU"]:
-        st.header("Performance Metrics")
-        mse = performance_metrics.get("Mean Squared Error", "N/A")
-        r2 = performance_metrics.get("R-squared", "N/A")
+            # Display performance metrics
+            st.header("Test Performance Metrics")
+            st.json(performance_metrics)
 
-        st.write(f"**Mean Squared Error:** {mse}")
-        st.write(f"**R-squared:** {r2}")
+        if select_model in ["Linear Regression", "Random Forest Regressor", "XGBoost Regressor", "RNN", "LSTM", "GRU"]:
+            st.header("Performance Metrics")
+            mse = performance_metrics.get("Mean Squared Error", "N/A")
+            r2 = performance_metrics.get("R-squared", "N/A")
 
-    # confusion matrix for classification
-    else:
-        st.header("Confusion Matrix")
-        cm = performance_metrics["Confusion Matrix"]
-        fig_cm = go.Figure(data=go.Heatmap(z=cm, x=['Predicted 0', 'Predicted 1'], y=['Actual 0', 'Actual 1'], colorscale='Blues'))
-        fig_cm.update_layout(title='Confusion Matrix', xaxis_title='Predicted labels', yaxis_title='True labels')
-        st.plotly_chart(fig_cm, use_container_width=True, config={'displayModeBar': False})
+            st.write(f"**Mean Squared Error:** {mse}")
+            st.write(f"**R-squared:** {r2}")
+
+        # confusion matrix for classification
+        else:
+            st.header("Confusion Matrix")
+            cm = performance_metrics["Confusion Matrix"]
+            fig_cm = go.Figure(data=go.Heatmap(z=cm, x=['Predicted 0', 'Predicted 1'], y=['Actual 0', 'Actual 1'], colorscale='Blues'))
+            fig_cm.update_layout(title='Confusion Matrix', xaxis_title='Predicted labels', yaxis_title='True labels')
+            st.plotly_chart(fig_cm, use_container_width=True, config={'displayModeBar': False})
 
 else:
     if uploaded_file is None:
