@@ -1,4 +1,4 @@
-# SmartML Dataset Trainer
+# TrainBotAI Dataset Trainer
 ## Machine Learning Model Training and Evaluation
 This project provides a Streamlit-based web application for training, evaluating, and predicting with machine learning models on CSV datasets. It supports both traditional models (e.g., Logistic Regression, Random Forest) and neural network models (e.g., RNN, LSTM, GRU). The platform includes functionality for preprocessing data, training models, evaluating model performance, and making predictions on new data.
 
