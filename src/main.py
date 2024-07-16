@@ -17,7 +17,7 @@ from ml import preprocess, preprocess_sequences, train, train_rnn_lstm, evaluate
 
 # Initialize Streamlit
 st.set_page_config(
-    page_title="SmartML",
+    page_title="TrainBotAI",
     page_icon="📈",
     layout="centered"
 )
