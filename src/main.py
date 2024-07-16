@@ -32,7 +32,8 @@ trained_models_directory = f"{parent_directory}/trained"
 select_model = ""
 
 # Title
-st.title("💻 Dataset Trainer and Predictor")
+st.subheader("🤖 TrainBotAI", divider='blue')
+st.subheader("💻 Dataset Trainer and Predictor")
 
 # Upload dataset
 uploaded_file = st.file_uploader("Upload your dataset (CSV, XLS, XLSX)", type=["csv", "xls", "xlsx"])
