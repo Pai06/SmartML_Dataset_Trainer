@@ -191,7 +191,7 @@ if df is not None:
             r2 = performance_metrics.get("R-squared", "N/A")
 
             st.write(f"**Mean Squared Error:** {mse}")
-            st.write(f"**R-squared:** {r2}")
+            st.write(f"**R-squared Error:** {r2}")
 
         # confusion matrix for classification
         else:
