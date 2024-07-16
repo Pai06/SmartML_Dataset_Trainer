@@ -208,7 +208,7 @@ else:
 
 
 # prediction section
-st.header("🔍 Model Prediction")
+st.subheader("🔍 Model Prediction")
 
 # Upload dataset for prediction
 uploaded_prediction_file = st.file_uploader("Upload new data for prediction (CSV, XLS, XLSX)", type=["csv", "xls", "xlsx"])
